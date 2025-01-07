@@ -1,6 +1,6 @@
 mkdir build
 cd build
 
-cmake -DCMAKE_C_COMPILER=/home/koi/install/loongson-gnu-toolchain/bin/loongarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/your_path/loongson-gnu-toolchain-8.3-x86_64-loongarch64-linux-gnu-rc1.5/bin/loongarch64-linux-gnu-g++  ..
+cmake -DCMAKE_C_COMPILER=/home/koi/install/loongson-gnu-toolchain/bin/loongarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/home/koi/install/loongson-gnu-toolchain/bin/loongarch64-linux-gnu-g++  ..
 
 make -j4

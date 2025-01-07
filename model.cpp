@@ -59,7 +59,43 @@ torch::Tensor Model::forward(torch::Tensor input) {
     return fc2_output;
 }
 
+// Model::Model()
+// {
+//     // 初始化卷积层
+//     conv1 = register_module("conv1", torch::nn::Sequential(
+//                                          torch::nn::Conv1d(torch::nn::Conv1dOptions(1, 32, 3).stride(2).padding(1)),
+//                                          torch::nn::ReLU(true),
+//                                          torch::nn::BatchNorm1d(32)));
 
+//     conv2 = register_module("conv2", torch::nn::Sequential(
+//                                          torch::nn::Conv1d(torch::nn::Conv1dOptions(32, 64, 3).stride(2).padding(1)),
+//                                          torch::nn::ReLU(true),
+//                                          torch::nn::BatchNorm1d(64)));
+
+//     // 初始化自适应池化层
+//     adaptive_pool = register_module("adaptive_pool", torch::nn::AdaptiveAvgPool1d(1));
+
+//     // 初始化全连接层
+//     fc1 = register_module("fc1", torch::nn::Sequential(
+//                                      torch::nn::Dropout(0.5),
+//                                      torch::nn::Linear(64, 32) // 64 是通道数
+//                                      ));
+
+//     fc2 = register_module("fc2", torch::nn::Linear(32, 2)); // 32 是 fc1 的输出
+// }
+
+// torch::Tensor Model::forward(torch::Tensor input)
+// {
+//     auto conv1_output = conv1->forward(input);
+//     auto conv2_output = conv2->forward(conv1_output);
+
+//     auto pooled_output = adaptive_pool->forward(conv2_output);
+//     auto flattened_output = pooled_output.view({-1, 64}); // 64 是通道数
+
+//     auto fc1_output = torch::relu(fc1->forward(flattened_output));
+//     auto fc2_output = fc2->forward(fc1_output);
+//     return fc2_output;
+// }
 
 /*
 torch::Tensor Model::forward(torch::Tensor input)

@@ -21,4 +21,18 @@ private:
     torch::nn::AdaptiveAvgPool1d adaptive_pool = nullptr; // 自适应池化层
 };
 
+// class Model : public torch::nn::Module {
+// public:
+//     // 构造函数
+//     Model();
+
+//     // 前向传播
+//     torch::Tensor forward(torch::Tensor input);
+
+// private:
+//     torch::nn::Sequential conv1, conv2;
+//     torch::nn::AdaptiveAvgPool1d adaptive_pool = nullptr;
+//     torch::nn::Sequential fc1;
+//     torch::nn::Linear fc2 = nullptr;
+// };
 #endif

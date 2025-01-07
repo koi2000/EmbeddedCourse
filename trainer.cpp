@@ -26,6 +26,8 @@ void Trainer::train(
   auto start_time = std::chrono::high_resolution_clock::now();
   for (const auto& batch : *data_loader) {
     std::vector<torch::Tensor> data_vec, target_vec;
+    // data_vec.reserve(batch.size());
+    // target_vec.reserve(batch.size());
     for (const auto& example : batch) {
       data_vec.push_back(example.data.to(device));
       target_vec.push_back(example.target.unsqueeze(0).to(device));
@@ -99,6 +101,8 @@ void Trainer::test(
   for (const auto& batch : *data_loader) {
     // 合并 batch 中的数据和标签
     std::vector<torch::Tensor> data_vec, target_vec;
+    // data_vec.reserve(batch.size());
+    // target_vec.reserve(batch.size());
     for (const auto& example : batch) {
       data_vec.push_back(example.data.to(device));
       target_vec.push_back(example.target.unsqueeze(0).to(device));

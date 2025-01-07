@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(LibTorchDemo)
 
 # 设置 LibTorch 的安装路径
-set(TORCH_INSTALL_PREFIX "/tmp/loongTensor")
+# set(TORCH_INSTALL_PREFIX "/tmp/loongTensor")
+set(TORCH_INSTALL_PREFIX "/tmp/libtorch")
 #set(TORCH_INSTALL_PREFIX "/home/emd/lib/libtorchx86")
 
 # 设置 LibTorch 的配置文件路径
@@ -13,7 +14,8 @@ set(Caffe2_DIR "${TORCH_INSTALL_PREFIX}/share/cmake/Caffe2")
 
 # 编译选项
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # 查找 LibTorch 包
 find_package(Torch REQUIRED)
