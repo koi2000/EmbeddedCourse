@@ -5,39 +5,46 @@
 
 void Trainer::train(
     size_t epoch,
-    Model& model,
-    torch::optim::Optimizer& optimizer,
+    Model &model,
+    torch::optim::Optimizer &optimizer,
     torch::Device device,
-    Dataset& train_dataset,
+    Dataset &train_dataset,
     int batch_size,
-    int num_workers) {
+    int num_workers)
+{
   model.train();
   auto start_time1 = std::chrono::high_resolution_clock::now();
   auto data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
       train_dataset,
       torch::data::DataLoaderOptions().batch_size(batch_size).workers(num_workers));
+
   // 记录结束时间并计算耗时
   auto end_time1 = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> epoch_duration1 = end_time1 - start_time1;
   std::cout << std::endl;
-  std::cout << "Dataloader time : "<<epoch_duration1.count() <<"s"<< std::endl;
+  std::cout << "Dataloader time : " << epoch_duration1.count() << "s" << std::endl;
 
   size_t batch_idx = 0;
   auto start_time = std::chrono::high_resolution_clock::now();
-  for (const auto& batch : *data_loader) {
-    std::vector<torch::Tensor> data_vec, target_vec;
+  std::vector<torch::Tensor> data_vec(32), target_vec(32);
+  for (const auto &batch : *data_loader)
+  {
     // data_vec.reserve(batch.size());
     // target_vec.reserve(batch.size());
-    for (const auto& example : batch) {
-      data_vec.push_back(example.data.to(device));
-      target_vec.push_back(example.target.unsqueeze(0).to(device));
+    int idx = 0;
+    for (const auto &example : batch)
+    {
+      // data_vec.push_back(example.data.to(device));
+      // target_vec.push_back(example.target.unsqueeze(0).to(device));
+      data_vec[idx] = example.data.to(device);
+      target_vec[idx++] = example.target.unsqueeze(0).to(device);
     }
-    
+
     torch::Tensor data = torch::stack(data_vec);
     torch::Tensor targets = torch::stack(target_vec).squeeze(1);
 
     // 调整张量形状以适应 Conv1d 层的输入要求
-    int actual_batch_size = data.size(0); 
+    int actual_batch_size = data.size(0);
     data = data.view({actual_batch_size, 1, 1250}); // 确保形状为 [batch_size, channels, length]
 
     optimizer.zero_grad();
@@ -51,7 +58,7 @@ void Trainer::train(
 
     loss.backward();
     optimizer.step();
-    
+
     // if (batch_idx == 0) { // 只打印第一个批次
     //     std::cout << "Sample outputs: " << output.sizes() << std::endl;
     //     std::cout << "Sample targets: " << targets.sizes() << std::endl;
@@ -60,7 +67,8 @@ void Trainer::train(
     //     std::cout << "Sample targets: " << targets.slice(/*dim=*/0, /*start=*/0, /*end=*/5) << std::endl;
     // }
 
-    if (batch_idx++ % log_interval_ == 0) {
+    if (batch_idx++ % log_interval_ == 0)
+    {
       std::printf(
           "\rTrain Epoch: %ld [%5lu/%5lu] Loss: %.4f",
           epoch,
@@ -74,15 +82,16 @@ void Trainer::train(
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> epoch_duration = end_time - start_time;
   std::cout << std::endl;
-  std::cout << "Epoch batch_sum " <<batch_idx <<" time : "<<epoch_duration.count() <<"s"<< std::endl;
+  std::cout << "Epoch batch_sum " << batch_idx << " time : " << epoch_duration.count() << "s" << std::endl;
 }
 
 void Trainer::test(
-    Model& model,
+    Model &model,
     torch::Device device,
-    Dataset& test_dataset,
+    Dataset &test_dataset,
     int batch_size,
-    int num_workers) {
+    int num_workers)
+{
   // 测试时要将模型置为eval模式
   model.eval();
   double test_loss = 0;
@@ -135,5 +144,5 @@ void Trainer::test(
   // 记录结束时间并计算耗时
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> epoch_duration = end_time - start_time;
-  std::cout << "Valid batch_sum: " <<batch_idx <<" time : "<<epoch_duration.count() <<"s"<< std::endl;
+  std::cout << "Valid batch_sum: " << batch_idx << " time : " << epoch_duration.count() << "s" << std::endl;
 }

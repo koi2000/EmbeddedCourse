@@ -4,7 +4,11 @@
 #include "dataset.h"
 #include "model.h"
 #include "trainer.h"
-
+#include <pthread.h>
+#include <sched.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
 
 // void initialize_weights(Model& model) {
 //     for (auto& named_param : model.named_parameters()) {
@@ -24,23 +28,44 @@
 
 // }
 
-void initialize_weights(Model& model) {
-    for (auto& named_param : model.named_parameters()) {
-        if (named_param.key().find("weight") != std::string::npos) {
-            // 如果是权重参数
-            if (named_param.value().dim() == 4) {  // Conv2d weight
-                torch::nn::init::kaiming_uniform_(named_param.value(), 0);
-            } else if (named_param.value().dim() == 2) {  // Linear weight
-                torch::nn::init::kaiming_uniform_(named_param.value(), 0);
-            }
-        } else if (named_param.key().find("bias") != std::string::npos) {
-            // 如果是偏置参数
-            torch::nn::init::constant_(named_param.value(), 0.0);
-        }
+void initialize_weights(Model &model)
+{
+  for (auto &named_param : model.named_parameters())
+  {
+    if (named_param.key().find("weight") != std::string::npos)
+    {
+      // 如果是权重参数
+      if (named_param.value().dim() == 4)
+      { // Conv2d weight
+        torch::nn::init::kaiming_uniform_(named_param.value(), 0);
+      }
+      else if (named_param.value().dim() == 2)
+      { // Linear weight
+        torch::nn::init::kaiming_uniform_(named_param.value(), 0);
+      }
     }
+    else if (named_param.key().find("bias") != std::string::npos)
+    {
+      // 如果是偏置参数
+      torch::nn::init::constant_(named_param.value(), 0.0);
+    }
+  }
 }
 
-int main() {
+int main()
+{
+
+  struct sched_param param;
+  int policy = SCHED_FIFO;
+  pid_t pid = getpid();
+
+  param.sched_priority = 99;
+
+  if (sched_setscheduler(pid, policy, &param) == -1)
+  {
+    perror("sched_setscheduler failed");
+    return 1;
+  }
   // 超参数设置
   std::string data_root = "./data";
   int train_batch_size = 32;
@@ -54,7 +79,8 @@ int main() {
 
   // 获取设备类型
   torch::DeviceType device_type = torch::kCPU;
-  if (torch::cuda::is_available()) {
+  if (torch::cuda::is_available())
+  {
     device_type = torch::kCUDA;
   }
   torch::Device device(device_type);
@@ -65,8 +91,22 @@ int main() {
   model.to(device);
 
   // 设置优化器
-  torch::optim::SGD optimizer(
-      model.parameters(), torch::optim::SGDOptions(0.01).momentum(0.5));
+  // torch::optim::SGD optimizer(
+  //     model.parameters(), torch::optim::SGDOptions(0.01).momentum(0.5));
+
+  // auto optimizer = torch::optim::SGD(
+  //     model.parameters(),
+  //     torch::optim::SGDOptions(0.01) // 初始学习率
+  //         .momentum(0.8)             // 增加动量
+  //         .weight_decay(5e-5)        // 添加权重衰减
+  // );
+
+  auto optimizer = torch::optim::Adam(
+      model.parameters(),
+      torch::optim::AdamOptions(0.01) 
+          // .betas({0.9, 0.999})        
+          .weight_decay(1e-5)    
+  );
 
   // 构造训练和测试数据集
   Dataset train_dataset("./data/indice/test_indice.csv", "./data/training_dataset", Dataset::Phase::Train);
@@ -74,7 +114,8 @@ int main() {
   auto train_start = std::chrono::high_resolution_clock::now();
   // Trainer初始化
   Trainer trainer(log_interval);
-  for (size_t epoch = 1; epoch <= total_epoch_num; ++epoch) {
+  for (size_t epoch = 1; epoch <= total_epoch_num; ++epoch)
+  {
     // 运行训练
     trainer.train(
         epoch,
@@ -93,9 +134,9 @@ int main() {
   std::cout << "Total training time: " << train_duration << " seconds" << std::endl;
 
   torch::serialize::OutputArchive archive;
-	model.save(archive);
-	archive.save_to("model.pt");
-	printf("Save the training result to model.pt.\n");
+  model.save(archive);
+  archive.save_to("model.pt");
+  printf("Save the training result to model.pt.\n");
 
   return 0;
 }
